@@ -1,0 +1,1852 @@
+<title>Integration Specification</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+
+<style>
+:root {
+  --bg: #f8f9fb;
+  --bg-card: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-code: #f0f2f6;
+  --bg-table-head: #f0f2f6;
+  --bg-table-alt: #f7f8fa;
+  --fg: #1a1d23;
+  --fg-muted: #6b7280;
+  --fg-code: #c7254e;
+  --border: #e5e7eb;
+  --border-card: #e5e7eb;
+  --accent: #6366f1;
+  --accent-soft: #eef2ff;
+  --accent-2: #f59e0b;
+  --accent-3: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  --radius: 10px;
+  --sidebar-width: 260px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1117;
+    --bg-card: #1a1d27;
+    --bg-sidebar: #15181f;
+    --bg-code: #20232e;
+    --bg-table-head: #20232e;
+    --bg-table-alt: #1c1f2b;
+    --fg: #e4e6ef;
+    --fg-muted: #9ca3af;
+    --fg-code: #f472b6;
+    --border: #2a2d3a;
+    --border-card: #2a2d3a;
+    --accent: #818cf8;
+    --accent-soft: #1e1f3b;
+    --accent-2: #fbbf24;
+    --accent-3: #34d399;
+    --shadow: 0 1px 3px rgba(0,0,0,.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.3);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-sidebar: #15181f;
+  --bg-code: #20232e;
+  --bg-table-head: #20232e;
+  --bg-table-alt: #1c1f2b;
+  --fg: #e4e6ef;
+  --fg-muted: #9ca3af;
+  --fg-code: #f472b6;
+  --border: #2a2d3a;
+  --border-card: #2a2d3a;
+  --accent: #818cf8;
+  --accent-soft: #1e1f3b;
+  --accent-2: #fbbf24;
+  --accent-3: #34d399;
+  --shadow: 0 1px 3px rgba(0,0,0,.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.3);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  background: var(--bg);
+  color: var(--fg);
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+}
+
+/* Layout */
+.layout {
+  display: flex;
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 24px 0 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.sidebar-brand .logo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.sidebar-brand h2 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+  line-height: 1.3;
+}
+
+.sidebar-nav { flex: 1; }
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  padding: 12px 20px 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 20px;
+  font-size: 13px;
+  color: var(--fg-muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all .15s;
+}
+.nav-link:hover, .nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+.nav-link .nav-icon { width: 16px; text-align: center; font-size: 14px; }
+
+/* Theme toggle */
+.sidebar-footer {
+  padding: 16px 20px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+}
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--fg-muted);
+  width: 100%;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Main content */
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 48px max(24px, env(safe-area-inset-right, 24px)) 64px max(24px, env(safe-area-inset-left, 24px));
+  max-width: 860px;
+}
+
+/* Header */
+.doc-header {
+  margin-bottom: 48px;
+  padding-bottom: 32px;
+  border-bottom: 2px solid var(--border);
+}
+.doc-header .badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  letter-spacing: .03em;
+}
+.badge.green { background: #d1fae5; color: #065f46; }
+.badge.amber { background: #fef3c7; color: #92400e; }
+:root[data-theme="dark"] .badge.green { background: #064e3b; color: #6ee7b7; }
+:root[data-theme="dark"] .badge.amber { background: #451a03; color: #fde68a; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .badge.green { background: #064e3b; color: #6ee7b7; }
+  :root:not([data-theme="light"]) .badge.amber { background: #451a03; color: #fde68a; }
+}
+
+.doc-header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+  color: var(--fg);
+  text-wrap: balance;
+  margin-bottom: 12px;
+}
+.doc-header .subtitle {
+  font-size: 16px;
+  color: var(--fg-muted);
+  max-width: 580px;
+}
+
+/* Section headings */
+.section { margin-bottom: 56px; scroll-margin-top: 24px; }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.section-icon { font-size: 22px; }
+.section-header h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--fg);
+  text-wrap: balance;
+}
+.section-header .section-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--fg);
+  margin: 28px 0 12px;
+}
+h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin: 20px 0 10px;
+}
+
+p { margin-bottom: 12px; color: var(--fg); }
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.card-title .card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.card-title h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--fg);
+}
+
+/* Callout box */
+.callout {
+  display: flex;
+  gap: 12px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--fg);
+}
+.callout.warning { background: #fffbeb; border-color: var(--warning); }
+.callout.success { background: #ecfdf5; border-color: var(--success); }
+:root[data-theme="dark"] .callout.warning { background: #451a03; }
+:root[data-theme="dark"] .callout.success { background: #022c22; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .callout.warning { background: #451a03; }
+  :root:not([data-theme="light"]) .callout.success { background: #022c22; }
+}
+.callout-icon { font-size: 18px; flex-shrink: 0; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin-bottom: 20px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 400px;
+}
+th {
+  background: var(--bg-table-head);
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid var(--border);
+}
+td {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  vertical-align: top;
+}
+tr:nth-child(even) td { background: var(--bg-table-alt); }
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--bg-code);
+  color: var(--fg-code);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Code blocks */
+.code-block {
+  position: relative;
+  margin-bottom: 20px;
+}
+.code-block pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 50px 16px 18px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg);
+}
+.code-block .copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.copy-btn.copied { border-color: var(--success); color: var(--success); }
+
+/* Mermaid */
+.mermaid-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+.mermaid { text-align: center; }
+
+/* Checklists */
+.checklist { list-style: none; margin-bottom: 16px; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist input[type=checkbox] {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.checklist li.checked { color: var(--fg-muted); text-decoration: line-through; }
+
+/* Phase tracker */
+.phase-tracker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.phase-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.phase-card:hover { border-color: var(--accent); }
+.phase-card.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.phase-card .phase-icon { font-size: 20px; margin-bottom: 6px; }
+.phase-card .phase-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.phase-card .phase-status {
+  font-size: 11px;
+  color: var(--fg-muted);
+  margin-top: 4px;
+}
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fg-muted);
+  margin-right: 4px;
+}
+.status-dot.done { background: var(--success); }
+.status-dot.progress { background: var(--warning); }
+.status-dot.pending { background: var(--fg-muted); }
+
+/* Integration inventory grid */
+.inventory-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.inv-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.inv-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.inv-details { flex: 1; min-width: 0; }
+.inv-name { font-size: 14px; font-weight: 600; color: var(--fg); }
+.inv-meta { font-size: 12px; color: var(--fg-muted); }
+.inv-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.inv-badge.auth { background: #ede9fe; color: #5b21b6; }
+.inv-badge.db { background: #dbeafe; color: #1e40af; }
+.inv-badge.ai { background: #fce7f3; color: #9d174d; }
+.inv-badge.api { background: #d1fae5; color: #065f46; }
+.inv-badge.storage { background: #fef3c7; color: #92400e; }
+:root[data-theme="dark"] .inv-badge.auth { background: #2e1065; color: #c4b5fd; }
+:root[data-theme="dark"] .inv-badge.db { background: #1e3a8a; color: #93c5fd; }
+:root[data-theme="dark"] .inv-badge.ai { background: #500724; color: #f9a8d4; }
+:root[data-theme="dark"] .inv-badge.api { background: #064e3b; color: #6ee7b7; }
+:root[data-theme="dark"] .inv-badge.storage { background: #451a03; color: #fde68a; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .inv-badge.auth { background: #2e1065; color: #c4b5fd; }
+  :root:not([data-theme="light"]) .inv-badge.db { background: #1e3a8a; color: #93c5fd; }
+  :root:not([data-theme="light"]) .inv-badge.ai { background: #500724; color: #f9a8d4; }
+  :root:not([data-theme="light"]) .inv-badge.api { background: #064e3b; color: #6ee7b7; }
+  :root:not([data-theme="light"]) .inv-badge.storage { background: #451a03; color: #fde68a; }
+}
+
+/* Cost table highlight */
+.cost-total td { font-weight: 700; background: var(--accent-soft) !important; color: var(--accent); }
+
+/* Progress bar */
+.progress-bar-wrap { background: var(--bg-code); border-radius: 999px; height: 8px; margin-bottom: 8px; }
+.progress-bar { height: 8px; border-radius: 999px; background: var(--accent); transition: width .3s; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { padding: 24px max(16px, env(safe-area-inset-right, 16px)) 48px max(16px, env(safe-area-inset-left, 16px)); }
+  .doc-header h1 { font-size: 24px; }
+  .phase-tracker { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Mobile nav toggle */
+.mobile-nav-btn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+}
+@media (max-width: 768px) { .mobile-nav-btn { display: flex; align-items: center; justify-content: center; } }
+
+/* Print button */
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .15s;
+  text-decoration: none;
+}
+.action-btn.primary { background: var(--accent); color: white; border: 1px solid var(--accent); }
+.action-btn.primary:hover { opacity: .9; }
+.action-btn.secondary { background: var(--bg-card); color: var(--fg-muted); border: 1px solid var(--border); }
+.action-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+.stat-card .stat-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-card .stat-label { font-size: 11px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; }
+
+/* Divider */
+.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+ul { padding-left: 20px; margin-bottom: 12px; }
+li { margin-bottom: 4px; }
+
+.tip-box {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  margin-bottom: 16px;
+  color: var(--fg);
+}
+.tip-box strong { color: var(--accent); }
+</style>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">📘 Template</div>
+      <h2>Integration Specification</h2>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Getting Started</div>
+      <a class="nav-link active" href="#how-to-fill"><span class="nav-icon">🧭</span> How to Fill</a>
+      <a class="nav-link" href="#doc-meta"><span class="nav-icon">📋</span> Document Meta</a>
+
+      <div class="nav-section-label">Sections</div>
+      <a class="nav-link" href="#overview"><span class="nav-icon">🏗️</span> 1. Project Overview</a>
+      <a class="nav-link" href="#architecture"><span class="nav-icon">🗺️</span> 2. Architecture</a>
+      <a class="nav-link" href="#inventory"><span class="nav-icon">📦</span> 3. Inventory</a>
+      <a class="nav-link" href="#auth"><span class="nav-icon">🔐</span> 4. Auth & Identity</a>
+      <a class="nav-link" href="#database"><span class="nav-icon">🗄️</span> 5. Database & Storage</a>
+      <a class="nav-link" href="#ai"><span class="nav-icon">🤖</span> 6. AI / LLM</a>
+      <a class="nav-link" href="#thirdparty"><span class="nav-icon">🔌</span> 7. Third-Party APIs</a>
+      <a class="nav-section-label">Best Practices</div>
+      <a class="nav-link" href="#security"><span class="nav-icon">🔒</span> 8. Security</a>
+      <a class="nav-link" href="#errors"><span class="nav-icon">⚠️</span> 9. Error Handling</a>
+      <a class="nav-link" href="#costs"><span class="nav-icon">💰</span> 10. Cost & Rate Limits</a>
+      <a class="nav-link" href="#testing"><span class="nav-icon">🧪</span> 11. Testing</a>
+
+      <div class="nav-section-label">Tracking</div>
+      <a class="nav-link" href="#readiness"><span class="nav-icon">📊</span> 12. Readiness Tracker</a>
+      <a class="nav-link" href="#checklist"><span class="nav-icon">🚀</span> 13. Launch Checklist</a>
+      <a class="nav-link" href="#appendix"><span class="nav-icon">📎</span> Appendix</a>
+    </div>
+    <div class="sidebar-footer">
+      <button class="theme-toggle" onclick="toggleTheme()">🌗 Toggle Dark / Light</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Header -->
+    <div class="doc-header" id="how-to-fill">
+      <div class="badge-row">
+        <span class="badge">v1.0</span>
+        <span class="badge">AI-Driven Dev Lifecycle</span>
+        <span class="badge green">SaaS · Mobile</span>
+        <span class="badge amber">Solo Founders · Small Teams</span>
+      </div>
+      <h1>📘 Integration Specification Template</h1>
+      <p class="subtitle">A single source of truth for every external service, API, database, and AI system your product connects to — from first commit to first 500 customers.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num">14</div><div class="stat-label">Sections</div></div>
+      <div class="stat-card"><div class="stat-num">8+</div><div class="stat-label">Integration Types</div></div>
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">Launch Phases</div></div>
+      <div class="stat-card"><div class="stat-num">500</div><div class="stat-label">Customer Target</div></div>
+    </div>
+
+    <!-- How to fill -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🧭</span>
+        <h2>How to Fill This Document</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div><strong>Read this first</strong> — before you touch anything else. Every field has a 💡 instruction with a real example. Replace placeholder text <code>[like this]</code> with your actual information.</div>
+      </div>
+
+      <h3>What is this document?</h3>
+      <p>Your <strong>Integration Specification</strong> — a wiring diagram for your app. It describes every external service, API, database, and AI system you connect to. Without it, bugs are mysterious, teammates get confused, and handoffs break.</p>
+
+      <h3>Who fills it?</h3>
+      <p>Anyone building the product — developer, founder, freelancer, or non-technical PM. Every section is written in plain English with examples. Even a beginner can fill it.</p>
+
+      <h3>When to fill it?</h3>
+      <ul>
+        <li><strong>Start:</strong> Fill Sections 1–3 before writing a single line of code</li>
+        <li><strong>Continue:</strong> Fill each Integration Card as you add each new service</li>
+        <li><strong>Update:</strong> Every time an API key changes or a new endpoint is added</li>
+        <li><strong>Review:</strong> Before each major milestone (Alpha → Beta → GA → 500 Customers)</li>
+      </ul>
+
+      <h3>Step-by-Step Guide</h3>
+      <div class="phase-tracker">
+        <div class="phase-card"><div class="phase-icon">📋</div><div class="phase-name">Step 1</div><div class="phase-status">Fill Document Meta</div></div>
+        <div class="phase-card"><div class="phase-icon">🏗️</div><div class="phase-name">Step 2</div><div class="phase-status">Write Project Overview</div></div>
+        <div class="phase-card"><div class="phase-icon">🗺️</div><div class="phase-name">Step 3</div><div class="phase-status">Edit Architecture Diagram</div></div>
+        <div class="phase-card"><div class="phase-icon">📦</div><div class="phase-name">Step 4</div><div class="phase-status">Fill Integration Inventory</div></div>
+        <div class="phase-card"><div class="phase-icon">🃏</div><div class="phase-name">Step 5</div><div class="phase-status">Fill Integration Cards</div></div>
+        <div class="phase-card"><div class="phase-icon">🔒</div><div class="phase-name">Step 6</div><div class="phase-status">Security, Errors, Cost, Testing</div></div>
+        <div class="phase-card"><div class="phase-icon">📊</div><div class="phase-name">Step 7</div><div class="phase-status">Update Readiness Tracker</div></div>
+        <div class="phase-card"><div class="phase-icon">🚀</div><div class="phase-name">Step 8</div><div class="phase-status">Walk Launch Checklist</div></div>
+      </div>
+
+      <div class="tip-box"><strong>💡 Tip for beginners:</strong> Don't try to fill everything at once. Fill the sections you know today. Come back and fill the rest tomorrow. A 70% complete spec is infinitely better than none.</div>
+    </div>
+
+    <!-- Doc Meta -->
+    <div class="section" id="doc-meta">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <h2>Document Meta</h2>
+      </div>
+      <p class="tip-box"><strong>💡</strong> Fill this in 2 minutes. It tells anyone reading this doc exactly what product it covers and who owns it.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Value (replace with your info)</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Project / Product Name</strong></td><td><code>[e.g., Nexus — AI-powered CRM for freelancers]</code></td></tr>
+            <tr><td><strong>Document Owner</strong></td><td><code>[Your name or GitHub handle]</code></td></tr>
+            <tr><td><strong>Tech Lead / Reviewer</strong></td><td><code>[Name or "TBD"]</code></td></tr>
+            <tr><td><strong>Created Date</strong></td><td><code>[YYYY-MM-DD]</code></td></tr>
+            <tr><td><strong>Last Updated</strong></td><td><code>[YYYY-MM-DD]</code></td></tr>
+            <tr><td><strong>Document Version</strong></td><td><code>[1.0]</code></td></tr>
+            <tr><td><strong>Product Stage</strong></td><td><code>[ ] Dev &nbsp; [ ] Alpha &nbsp; [ ] Beta &nbsp; [ ] GA &nbsp; [ ] Post-Launch</code></td></tr>
+            <tr><td><strong>Target: First 500 Customers Date</strong></td><td><code>[YYYY-MM-DD or "Unknown"]</code></td></tr>
+            <tr><td><strong>Repository URL</strong></td><td><code>[https://github.com/your-org/your-repo]</code></td></tr>
+            <tr><td><strong>Primary Tech Stack</strong></td><td><code>[e.g., Next.js 14, Supabase, Python FastAPI, React Native]</code></td></tr>
+            <tr><td><strong>Deployment Platform</strong></td><td><code>[e.g., Vercel + Railway + AWS S3]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 1: Project Overview -->
+    <div class="section" id="overview">
+      <div class="section-header">
+        <span class="section-num">1</span>
+        <span class="section-icon">🏗️</span>
+        <h2>Project Overview</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>In 3–5 sentences, describe what the product does, who it's for, and why it needs these integrations. You're setting context so anyone reading this doc understands the "why" before the "what."</div>
+      </div>
+
+      <div class="card">
+        <h4>Product Description</h4>
+        <p><em>Example: "Nexus is a SaaS CRM built for freelancers to track clients, invoices, and projects in one place. It integrates with Stripe for payments, OpenAI for AI-generated proposals, Supabase for data storage, and Twilio for SMS reminders. These integrations are core to the product — removing any one of them would break key user workflows."</em></p>
+        <p><code>[Write 3–5 sentences here.]</code></p>
+      </div>
+
+      <h3>Key User Workflows That Depend on Integrations</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>User Action</th><th>Integration Required</th></tr></thead>
+          <tbody>
+            <tr><td><code>[e.g., User signs up with Google]</code></td><td><code>[e.g., Google OAuth]</code></td></tr>
+            <tr><td><code>[e.g., User pays for subscription]</code></td><td><code>[e.g., Stripe Billing]</code></td></tr>
+            <tr><td><code>[e.g., AI generates a proposal]</code></td><td><code>[e.g., OpenAI GPT-4o]</code></td></tr>
+            <tr><td><code>[e.g., User gets SMS reminder]</code></td><td><code>[e.g., Twilio SMS]</code></td></tr>
+            <tr><td><em>Add more rows as needed</em></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 2: Architecture -->
+    <div class="section" id="architecture">
+      <div class="section-header">
+        <span class="section-num">2</span>
+        <span class="section-icon">🗺️</span>
+        <h2>Integration Architecture Diagram</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>This diagram shows how your app connects to everything else. Edit the Mermaid code below to match your actual services. Renders automatically on GitHub.</div>
+      </div>
+
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+graph LR
+    User("👤 User")
+    MobileApp["📱 Mobile App\n(iOS / Android)"]
+    WebApp["🌐 Web App\n(Next.js)"]
+    Backend["⚙️ Backend API\n(Your Server)"]
+
+    subgraph Auth ["Auth & Identity"]
+        AuthP["🔐 Auth Provider\n(Supabase Auth / Auth0)"]
+    end
+
+    subgraphAILLM ["AI / LLM"]
+        AI["🤖 LLM Provider\n(OpenAI / Claude)"]
+    end
+
+    subgraph DataLayer ["Database & Storage"]
+        DB["🗄️ Database\n(Supabase PostgreSQL)"]
+        Storage["📦 File Storage\n(AWS S3 / Supabase Storage)"]
+    end
+
+    subgraph APIs ["Third-Party APIs"]
+        Payments["💳 Payments\n(Stripe)"]
+        Email["📧 Email\n(Resend / SendGrid)"]
+        SMS["📱 SMS\n(Twilio)"]
+    end
+
+    User --> MobileApp
+    User --> WebApp
+    MobileApp --> Backend
+    WebApp --> Backend
+    Backend --> AuthP
+    Backend --> AI
+    Backend --> DB
+    Backend --> Storage
+    Backend --> Payments
+    Backend --> Email
+    Backend --> SMS
+        </pre>
+      </div>
+      <div class="tip-box"><strong>✏️ Customise this diagram</strong> to match your actual services. Delete services you don't use. Add new boxes for services not listed. The diagram uses <a href="https://mermaid.js.org/" target="_blank">Mermaid</a> syntax.</div>
+    </div>
+
+    <!-- Section 3: Inventory -->
+    <div class="section" id="inventory">
+      <div class="section-header">
+        <span class="section-num">3</span>
+        <span class="section-icon">📦</span>
+        <h2>Integration Inventory</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>List EVERY external service your app talks to — even ones used only in development. If your app calls it, it belongs here. Fill this table first, then create an Integration Card for each row.</div>
+      </div>
+
+      <div class="inventory-grid">
+        <div class="inv-row"><div class="inv-num">1</div><div class="inv-details"><div class="inv-name">[e.g., User Auth]</div><div class="inv-meta">Provider: Supabase Auth · Phase: Dev</div></div><span class="inv-badge auth">Auth & Identity</span></div>
+        <div class="inv-row"><div class="inv-num">2</div><div class="inv-details"><div class="inv-name">[e.g., Primary Database]</div><div class="inv-meta">Provider: Supabase PostgreSQL · Phase: Dev</div></div><span class="inv-badge db">Database</span></div>
+        <div class="inv-row"><div class="inv-num">3</div><div class="inv-details"><div class="inv-name">[e.g., File Storage]</div><div class="inv-meta">Provider: Supabase Storage / AWS S3 · Phase: Dev</div></div><span class="inv-badge storage">Storage</span></div>
+        <div class="inv-row"><div class="inv-num">4</div><div class="inv-details"><div class="inv-name">[e.g., AI Proposals]</div><div class="inv-meta">Provider: OpenAI GPT-4o · Phase: Alpha</div></div><span class="inv-badge ai">AI / LLM</span></div>
+        <div class="inv-row"><div class="inv-num">5</div><div class="inv-details"><div class="inv-name">[e.g., Payments]</div><div class="inv-meta">Provider: Stripe · Phase: Beta</div></div><span class="inv-badge api">Third-Party API</span></div>
+        <div class="inv-row"><div class="inv-num">6</div><div class="inv-details"><div class="inv-name">[e.g., Transactional Email]</div><div class="inv-meta">Provider: Resend · Phase: Alpha</div></div><span class="inv-badge api">Third-Party API</span></div>
+        <div class="inv-row"><div class="inv-num">7</div><div class="inv-details"><div class="inv-name">[e.g., SMS Alerts]</div><div class="inv-meta">Provider: Twilio · Phase: Beta</div></div><span class="inv-badge api">Third-Party API</span></div>
+        <div class="inv-row" style="border: 2px dashed var(--border); background: transparent; justify-content: center; color: var(--fg-muted); font-size:13px; cursor: default;">+ Add more integrations as needed</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Integration</th><th>Category</th><th>Provider</th><th>Status</th><th>Phase</th><th>Owner</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>[User Auth]</code></td><td>Auth & Identity</td><td><code>[Supabase Auth]</code></td><td><code>[ ] Planned [x] In Dev [ ] Live</code></td><td>Dev</td><td><code>[Name]</code></td></tr>
+            <tr><td>2</td><td><code>[Primary DB]</code></td><td>Database</td><td><code>[Supabase PostgreSQL]</code></td><td><code>[ ] Planned [x] In Dev [ ] Live</code></td><td>Dev</td><td><code>[Name]</code></td></tr>
+            <tr><td>3</td><td><code>[File Storage]</code></td><td>Storage</td><td><code>[AWS S3]</code></td><td><code>[x] Planned [ ] In Dev [ ] Live</code></td><td>Dev</td><td><code>[Name]</code></td></tr>
+            <tr><td>4</td><td><code>[AI Proposals]</code></td><td>AI / LLM</td><td><code>[OpenAI GPT-4o]</code></td><td><code>[x] Planned [ ] In Dev [ ] Live</code></td><td>Alpha</td><td><code>[Name]</code></td></tr>
+            <tr><td>5</td><td><code>[Payments]</code></td><td>Third-Party API</td><td><code>[Stripe]</code></td><td><code>[x] Planned [ ] In Dev [ ] Live</code></td><td>Beta</td><td><code>[Name]</code></td></tr>
+            <tr><td>6</td><td><code>[Email]</code></td><td>Third-Party API</td><td><code>[Resend]</code></td><td><code>[x] Planned [ ] In Dev [ ] Live</code></td><td>Alpha</td><td><code>[Name]</code></td></tr>
+            <tr><td>7</td><td><code>[SMS]</code></td><td>Third-Party API</td><td><code>[Twilio]</code></td><td><code>[x] Planned [ ] In Dev [ ] Live</code></td><td>Beta</td><td><code>[Name]</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px; color: var(--fg-muted);"><strong>Status Key:</strong> Planned = not started · In Dev = being built · Live = working in at least one environment</p>
+    </div>
+
+    <!-- Section 4: Auth -->
+    <div class="section" id="auth">
+      <div class="section-header">
+        <span class="section-num">4</span>
+        <span class="section-icon">🔐</span>
+        <h2>Auth & Identity Integrations</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>Copy this card for each Auth/Identity integration in your inventory. Authentication is the first thing users hit — get this wrong and nothing works.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon">🔐</div>
+          <h3>Auth Card: [e.g., Supabase Auth / Google OAuth / Auth0]</h3>
+        </div>
+
+        <h4>📌 Overview</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Integration Name</strong></td><td><code>[e.g., Supabase Auth]</code></td></tr>
+              <tr><td><strong>Provider</strong></td><td><code>[e.g., Supabase]</code></td></tr>
+              <tr><td><strong>Auth Type</strong></td><td><code>[ ] OAuth 2.0 &nbsp; [ ] JWT &nbsp; [ ] Magic Link &nbsp; [ ] API Key &nbsp; [ ] SSO/SAML</code></td></tr>
+              <tr><td><strong>Purpose</strong></td><td><code>[e.g., Handles user signup, login, session management, and password reset]</code></td></tr>
+              <tr><td><strong>Official Docs</strong></td><td><code>[https://supabase.com/docs/guides/auth]</code></td></tr>
+              <tr><td><strong>SDK / Library</strong></td><td><code>[e.g., @supabase/supabase-js v2]</code></td></tr>
+              <tr><td><strong>Owner</strong></td><td><code>[Name or GitHub handle]</code></td></tr>
+              <tr><td><strong>Last Verified</strong></td><td><code>[YYYY-MM-DD]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🔑 Credentials & Configuration</h4>
+        <div class="callout warning">
+          <span class="callout-icon">⚠️</span>
+          <div><strong>Never write actual secret values here.</strong> Write only the ENV variable NAME (e.g., <code>SUPABASE_ANON_KEY</code>). Store real values in your <code>.env</code> file, which must NEVER be committed to git.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Credential</th><th>Env Variable Name</th><th>Where to Get It</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Project URL</td><td><code>SUPABASE_URL</code></td><td>Supabase Dashboard → Settings → API</td><td>Safe to expose in frontend</td></tr>
+              <tr><td>Anon/Public Key</td><td><code>SUPABASE_ANON_KEY</code></td><td>Supabase Dashboard → Settings → API</td><td>Safe to expose in frontend</td></tr>
+              <tr><td>Service Role Key</td><td><code>SUPABASE_SERVICE_KEY</code></td><td>Supabase Dashboard → Settings → API</td><td>⚠️ NEVER expose in frontend</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🌐 Endpoints Used</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Method</th><th>Endpoint</th><th>What It Does</th></tr></thead>
+            <tbody>
+              <tr><td><code>POST</code></td><td><code>/auth/v1/signup</code></td><td>Creates a new user account</td></tr>
+              <tr><td><code>POST</code></td><td><code>/auth/v1/token?grant_type=password</code></td><td>Signs in with email + password</td></tr>
+              <tr><td><code>POST</code></td><td><code>/auth/v1/logout</code></td><td>Ends the user session</td></tr>
+              <tr><td><code>GET</code></td><td><code>/auth/v1/user</code></td><td>Fetches the logged-in user's profile</td></tr>
+              <tr><td><code>POST</code></td><td><code>/auth/v1/recover</code></td><td>Triggers password reset email</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🔄 Auth Flow Sequence</h4>
+        <div class="mermaid-wrap">
+          <pre class="mermaid">
+sequenceDiagram
+    participant U as 👤 User
+    participant App as 📱 Your App
+    participant Auth as 🔐 Auth Provider
+
+    U->>App: Enters email + password
+    App->>Auth: POST /auth/v1/token
+    Auth-->>App: Returns JWT access_token + refresh_token
+    App->>App: Stores tokens securely
+    App-->>U: Logged in ✅
+
+    Note over App,Auth: On subsequent requests
+    App->>Auth: Sends Bearer token in Authorization header
+    Auth-->>App: Validates token → 200 OK
+          </pre>
+        </div>
+
+        <h4>⚠️ Error Handling</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Error Code</th><th>Meaning</th><th>What Your App Does</th></tr></thead>
+            <tbody>
+              <tr><td><code>invalid_grant</code></td><td>Wrong password</td><td>Show "Incorrect email or password" — don't say which is wrong</td></tr>
+              <tr><td><code>email_not_confirmed</code></td><td>Email not verified</td><td>Show: "Please check your inbox to verify your email"</td></tr>
+              <tr><td><code>JWT expired</code></td><td>Session timed out</td><td>Auto-refresh token; if refresh expired → redirect to login</td></tr>
+              <tr><td><code>too_many_requests</code></td><td>Rate limit hit</td><td>Show: "Too many attempts. Try again in X minutes"</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🔒 Security Checklist</h4>
+        <ul class="checklist" id="auth-checklist">
+          <li><input type="checkbox"> Row Level Security (RLS) enabled on all database tables</li>
+          <li><input type="checkbox"> JWT secrets rotated on schedule (e.g., every 90 days)</li>
+          <li><input type="checkbox"> Refresh tokens stored in httpOnly cookie or encrypted storage</li>
+          <li><input type="checkbox"> Magic links expire within 1 hour</li>
+          <li><input type="checkbox"> Password policy enforced (min 8 chars, 1 uppercase, 1 number)</li>
+        </ul>
+
+        <h4>📊 Phase Readiness</h4>
+        <div class="phase-tracker">
+          <div class="phase-card active"><div class="phase-icon">🛠️</div><div class="phase-name">Development</div><div class="phase-status"><span class="status-dot progress"></span>In Progress</div></div>
+          <div class="phase-card"><div class="phase-icon">🔬</div><div class="phase-name">Staging</div><div class="phase-status"><span class="status-dot pending"></span>Not Started</div></div>
+          <div class="phase-card"><div class="phase-icon">🧪</div><div class="phase-name">Alpha / Beta</div><div class="phase-status"><span class="status-dot pending"></span>Not Started</div></div>
+          <div class="phase-card"><div class="phase-icon">🚀</div><div class="phase-name">General Availability</div><div class="phase-status"><span class="status-dot pending"></span>Not Started</div></div>
+        </div>
+      </div>
+
+      <div class="tip-box"><strong>➕ Copy the card above</strong> for each Auth integration. Common examples: Google OAuth, Apple Sign In, Auth0, Clerk, Firebase Auth, Custom JWT.</div>
+    </div>
+
+    <!-- Section 5: Database & Storage -->
+    <div class="section" id="database">
+      <div class="section-header">
+        <span class="section-num">5</span>
+        <span class="section-icon">🗄️</span>
+        <h2>Database & Storage Integrations</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>Copy the cards below for each database or file storage service. Your database is the most critical integration — treat it with the most care.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon">🗄️</div>
+          <h3>DB Card: [e.g., Supabase PostgreSQL / MongoDB Atlas / PlanetScale]</h3>
+        </div>
+
+        <h4>📌 Overview</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Integration Name</strong></td><td><code>[e.g., Primary Application Database]</code></td></tr>
+              <tr><td><strong>Provider</strong></td><td><code>[e.g., Supabase / MongoDB Atlas / PlanetScale / AWS RDS]</code></td></tr>
+              <tr><td><strong>Database Type</strong></td><td><code>[ ] PostgreSQL &nbsp; [ ] MySQL &nbsp; [ ] MongoDB &nbsp; [ ] Redis &nbsp; [ ] SQLite</code></td></tr>
+              <tr><td><strong>Purpose</strong></td><td><code>[e.g., Stores all user data, projects, invoices, and application state]</code></td></tr>
+              <tr><td><strong>ORM / Query Layer</strong></td><td><code>[e.g., Prisma ORM / Drizzle ORM / Supabase JS Client / Raw SQL]</code></td></tr>
+              <tr><td><strong>Official Docs</strong></td><td><code>[https://supabase.com/docs/guides/database]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🔑 Credentials & Connection</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Credential</th><th>Env Variable</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Connection String</td><td><code>DATABASE_URL</code></td><td>⚠️ NEVER commit this to git</td></tr>
+              <tr><td>Host</td><td><code>DB_HOST</code></td><td></td></tr>
+              <tr><td>Port</td><td><code>DB_PORT</code></td><td>Default: 5432 for PostgreSQL</td></tr>
+              <tr><td>Database Name</td><td><code>DB_NAME</code></td><td></td></tr>
+              <tr><td>Pool Size</td><td><code>DB_POOL_SIZE</code></td><td>e.g., 10 connections for small apps</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🗂️ Core Data Models / Tables</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Table</th><th>Purpose</th><th>Key Fields</th><th>Relationships</th></tr></thead>
+            <tbody>
+              <tr><td><code>users</code></td><td>User accounts</td><td><code>id, email, created_at, plan_id</code></td><td>Has many: projects, invoices</td></tr>
+              <tr><td><code>projects</code></td><td>Freelancer projects</td><td><code>id, user_id, name, status, deadline</code></td><td>Belongs to: users</td></tr>
+              <tr><td><code>invoices</code></td><td>Billing records</td><td><code>id, user_id, amount, status, stripe_id</code></td><td>Belongs to: users</td></tr>
+              <tr><td><em>Add more tables…</em></td><td></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>📦 Backups & Data Retention</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Policy</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Backup Frequency</td><td><code>[e.g., Daily automated backups by Supabase]</code></td></tr>
+              <tr><td>Retention Period</td><td><code>[e.g., 7 days on free tier, 30 days on Pro]</code></td></tr>
+              <tr><td>Manual Backup</td><td><code>[e.g., pg_dump command or Supabase dashboard download]</code></td></tr>
+              <tr><td>Data Deletion Policy</td><td><code>[e.g., Soft delete (deleted_at column) — hard delete after 90 days]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>⚠️ Error Handling</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Error</th><th>Meaning</th><th>What Your App Does</th></tr></thead>
+            <tbody>
+              <tr><td><code>Connection timeout</code></td><td>DB unreachable</td><td>Retry 3× with 1s backoff; show "Service temporarily unavailable"</td></tr>
+              <tr><td><code>Unique constraint violation</code></td><td>Duplicate record</td><td>Return 409 Conflict with field name</td></tr>
+              <tr><td><code>Foreign key violation</code></td><td>Referenced record missing</td><td>Return 422 Unprocessable Entity</td></tr>
+              <tr><td><code>Max connections reached</code></td><td>Pool exhausted</td><td>Queue requests; alert via monitoring</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon">📦</div>
+          <h3>Storage Card: [e.g., Supabase Storage / AWS S3 / Cloudflare R2]</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Credential</th><th>Env Variable</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Bucket Name</td><td><code>STORAGE_BUCKET</code></td><td>e.g., nexus-user-files</td></tr>
+              <tr><td>Region</td><td><code>STORAGE_REGION</code></td><td>e.g., us-east-1</td></tr>
+              <tr><td>Access Key</td><td><code>STORAGE_ACCESS_KEY</code></td><td>⚠️ Backend only</td></tr>
+              <tr><td>Secret Key</td><td><code>STORAGE_SECRET_KEY</code></td><td>⚠️ Backend only — never expose in frontend</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>📂 Folder Structure</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Folder Path</th><th>Contents</th><th>Access</th></tr></thead>
+            <tbody>
+              <tr><td><code>/avatars/{user_id}/</code></td><td>Profile pictures</td><td>Public read / Authenticated write</td></tr>
+              <tr><td><code>/invoices/{user_id}/</code></td><td>Generated PDFs</td><td>Private — owner only</td></tr>
+              <tr><td><code>/contracts/{user_id}/</code></td><td>Uploaded contracts</td><td>Private — owner only</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4>⚙️ File Policies</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Policy</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Max File Size</td><td><code>[e.g., 10MB per file]</code></td></tr>
+              <tr><td>Allowed MIME Types</td><td><code>[e.g., image/jpeg, image/png, application/pdf]</code></td></tr>
+              <tr><td>Virus Scanning</td><td><code>[e.g., Not implemented / Using ClamAV]</code></td></tr>
+              <tr><td>CDN URL Pattern</td><td><code>[https://storage.supabase.co/nexus/avatars/{user_id}/avatar.jpg]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 6: AI / LLM -->
+    <div class="section" id="ai">
+      <div class="section-header">
+        <span class="section-num">6</span>
+        <span class="section-icon">🤖</span>
+        <h2>AI / LLM Integrations</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>AI integrations are unique — they have token costs, rate limits, hallucination risks, content policies, and latency concerns. This is the most detailed card.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon">🤖</div>
+          <h3>AI Card: [e.g., OpenAI GPT-4o / Claude / Gemini]</h3>
+        </div>
+
+        <h4>📌 Overview</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Integration Name</strong></td><td><code>[e.g., AI Proposal Generator]</code></td></tr>
+              <tr><td><strong>Provider</strong></td><td><code>[e.g., OpenAI / Anthropic / Google]</code></td></tr>
+              <tr><td><strong>Model(s) Used</strong></td><td><code>[e.g., gpt-4o-mini (production), gpt-3.5-turbo (fallback)]</code></td></tr>
+              <tr><td><strong>Purpose</strong></td><td><code>[e.g., Generates client proposals based on project description and budget]</code></td></tr>
+              <tr><td><strong>SDK / Library</strong></td><td><code>[e.g., openai Python SDK v1.x / Anthropic SDK]</code></td></tr>
+              <tr><td><strong>Official Docs</strong></td><td><code>[https://platform.openai.com/docs]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🔑 Credentials</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Credential</th><th>Env Variable</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>API Key</td><td><code>OPENAI_API_KEY</code></td><td>⚠️ Backend only — NEVER expose in frontend</td></tr>
+              <tr><td>Organization ID</td><td><code>OPENAI_ORG_ID</code></td><td>Optional, for team billing</td></tr>
+              <tr><td>Project ID</td><td><code>OPENAI_PROJECT_ID</code></td><td>For usage tracking per project</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🗣️ Prompt Template</h4>
+        <div class="code-block">
+          <pre><code>// System Prompt
+You are a professional freelance proposal writer.
+Generate a concise, persuasive proposal based on the provided project details.
+Keep it under 300 words. Use a professional but friendly tone.
+
+// User Prompt Template
+Project: {{project_name}}
+Client: {{client_name}}
+Budget: {{budget}}
+Timeline: {{timeline}}
+Description: {{project_description}}
+
+Generate a proposal with: Executive Summary, Scope, Timeline, Pricing, Next Steps.</code></pre>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+
+        <h4>💰 Token & Cost Management</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Max Input Tokens</td><td><code>[e.g., 2,000 tokens — limit user inputs to control cost]</code></td></tr>
+              <tr><td>Max Output Tokens</td><td><code>[e.g., 500 tokens]</code></td></tr>
+              <tr><td>Temperature</td><td><code>[e.g., 0.7 — higher = more creative, lower = more consistent]</code></td></tr>
+              <tr><td>Cost per 1K input tokens</td><td><code>[e.g., $0.00015 for gpt-4o-mini]</code></td></tr>
+              <tr><td>Cost per 1K output tokens</td><td><code>[e.g., $0.00060 for gpt-4o-mini]</code></td></tr>
+              <tr><td>Avg cost per request</td><td><code>[e.g., ~$0.002]</code></td></tr>
+              <tr><td>Per-user daily limit</td><td><code>[e.g., 10 AI requests/user/day]</code></td></tr>
+              <tr><td>Monthly budget alert</td><td><code>[e.g., Alert at $50, hard cap at $200]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>⚡ Rate Limits & Circuit Breaker</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Requests Per Minute (RPM)</td><td><code>[e.g., 500 RPM on Tier 2]</code></td></tr>
+              <tr><td>Tokens Per Minute (TPM)</td><td><code>[e.g., 200,000 TPM]</code></td></tr>
+              <tr><td>Retry on 429</td><td>Yes — exponential backoff: 1s → 2s → 4s</td></tr>
+              <tr><td>Circuit breaker threshold</td><td><code>[e.g., 5 failures in 60 seconds → open circuit for 30s]</code></td></tr>
+              <tr><td>Fallback behavior</td><td><code>[e.g., Show cached response or "AI is unavailable — try again later"]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🔄 AI Request Flow</h4>
+        <div class="mermaid-wrap">
+          <pre class="mermaid">
+sequenceDiagram
+    participant User as 👤 User
+    participant Backend as ⚙️ Backend
+    participant Cache as 🗄️ Cache
+    participant AI as 🤖 AI Provider
+
+    User->>Backend: Request AI generation
+    Backend->>Backend: Validate input & check rate limit
+    Backend->>Cache: Check for cached response
+    Cache-->>Backend: Cache miss
+    Backend->>AI: POST /v1/chat/completions
+    AI-->>Backend: Streaming response
+    Backend->>Cache: Store result (TTL: 1 hour)
+    Backend-->>User: Return generated content ✅
+
+    Note over Backend,AI: On failure: retry with backoff
+    Note over Backend,AI: On circuit open: return fallback
+          </pre>
+        </div>
+
+        <h4>🛡️ Safety & Content Policy</h4>
+        <ul class="checklist" id="ai-safety-checklist">
+          <li><input type="checkbox"> Content moderation enabled (OpenAI moderation API or built-in filters)</li>
+          <li><input type="checkbox"> User inputs sanitized before sending to AI</li>
+          <li><input type="checkbox"> AI outputs validated before displaying to users</li>
+          <li><input type="checkbox"> Prompt injection attacks mitigated (system prompt separation)</li>
+          <li><input type="checkbox"> Personally Identifiable Information (PII) not included in prompts</li>
+          <li><input type="checkbox"> AI responses clearly labeled as AI-generated in the UI</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 7: Third-Party APIs -->
+    <div class="section" id="thirdparty">
+      <div class="section-header">
+        <span class="section-num">7</span>
+        <span class="section-icon">🔌</span>
+        <h2>Third-Party API Integrations</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>Copy this card for each third-party API (Stripe, Twilio, Resend, etc.). Each service has its own rate limits, webhook requirements, and error patterns.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon">💳</div>
+          <h3>API Card: [e.g., Stripe — Payments & Billing]</h3>
+        </div>
+
+        <h4>📌 Overview</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Integration Name</strong></td><td><code>[e.g., Stripe — Subscription Billing]</code></td></tr>
+              <tr><td><strong>Provider</strong></td><td><code>[e.g., Stripe]</code></td></tr>
+              <tr><td><strong>Purpose</strong></td><td><code>[e.g., Handles subscription management, one-time payments, and billing portal]</code></td></tr>
+              <tr><td><strong>SDK / Library</strong></td><td><code>[e.g., stripe npm package v14.x]</code></td></tr>
+              <tr><td><strong>Official Docs</strong></td><td><code>[https://stripe.com/docs]</code></td></tr>
+              <tr><td><strong>Sandbox / Test Mode</strong></td><td><code>[Use sk_test_... keys — see Testing section]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🔑 Credentials</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Credential</th><th>Env Variable</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Secret Key</td><td><code>STRIPE_SECRET_KEY</code></td><td>⚠️ Backend only. Use sk_test_... for dev/staging</td></tr>
+              <tr><td>Publishable Key</td><td><code>STRIPE_PUBLISHABLE_KEY</code></td><td>Safe for frontend. Use pk_test_... for dev</td></tr>
+              <tr><td>Webhook Secret</td><td><code>STRIPE_WEBHOOK_SECRET</code></td><td>Used to verify webhook signatures</td></tr>
+              <tr><td>Price IDs</td><td><code>STRIPE_PRICE_PRO, STRIPE_PRICE_BASIC</code></td><td>Copy from Stripe Dashboard → Products</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🌐 Endpoints / Operations Used</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Operation</th><th>Stripe API Call</th><th>Triggered By</th></tr></thead>
+            <tbody>
+              <tr><td>Create checkout session</td><td><code>stripe.checkout.sessions.create()</code></td><td>User clicks "Upgrade"</td></tr>
+              <tr><td>Handle webhook</td><td><code>POST /webhooks/stripe</code></td><td>Stripe event (payment, cancellation)</td></tr>
+              <tr><td>Open billing portal</td><td><code>stripe.billingPortal.sessions.create()</code></td><td>User clicks "Manage Billing"</td></tr>
+              <tr><td>Retrieve subscription</td><td><code>stripe.subscriptions.retrieve(id)</code></td><td>Check subscription status</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>🔔 Webhooks</h4>
+        <div class="callout warning">
+          <span class="callout-icon">⚠️</span>
+          <div><strong>Always verify webhook signatures!</strong> Never process a Stripe webhook without checking <code>stripe.webhooks.constructEvent(payload, sig, STRIPE_WEBHOOK_SECRET)</code></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Event</th><th>What It Means</th><th>Your Handler</th></tr></thead>
+            <tbody>
+              <tr><td><code>checkout.session.completed</code></td><td>User paid</td><td>Activate subscription, send welcome email</td></tr>
+              <tr><td><code>customer.subscription.updated</code></td><td>Plan changed</td><td>Update user plan in database</td></tr>
+              <tr><td><code>customer.subscription.deleted</code></td><td>Subscription cancelled</td><td>Downgrade to free tier</td></tr>
+              <tr><td><code>invoice.payment_failed</code></td><td>Payment failed</td><td>Email user, retry logic</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>⚠️ Error Handling</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Error</th><th>Meaning</th><th>What Your App Does</th></tr></thead>
+            <tbody>
+              <tr><td><code>card_declined</code></td><td>Card rejected by bank</td><td>Show: "Your payment couldn't be processed. Try a different card."</td></tr>
+              <tr><td><code>insufficient_funds</code></td><td>Not enough balance</td><td>Show generic payment error, don't reveal reason</td></tr>
+              <tr><td><code>rate_limit</code></td><td>Too many API calls</td><td>Retry with exponential backoff</td></tr>
+              <tr><td><code>api_connection_error</code></td><td>Stripe is unreachable</td><td>Retry; fall back to "Payment processing delayed"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tip-box"><strong>➕ Copy the card above</strong> for each third-party API: Twilio (SMS), Resend/SendGrid (email), Plaid (banking), Google Maps, etc.</div>
+    </div>
+
+    <!-- Section 8: Security -->
+    <div class="section" id="security">
+      <div class="section-header">
+        <span class="section-num">8</span>
+        <span class="section-icon">🔒</span>
+        <h2>Security & Secrets Management</h2>
+      </div>
+
+      <div class="card">
+        <h4>8.1 Secrets Management Rules</h4>
+        <ul>
+          <li>Use <code>.env</code> files locally — never commit them (<code>.gitignore</code> must include <code>.env</code>)</li>
+          <li>Use your platform's secret manager in production (e.g., Vercel Environment Variables, Railway Secrets, AWS Secrets Manager)</li>
+          <li>Rotate all API keys every 90 days minimum</li>
+          <li>Never log secrets — mask them in all log outputs</li>
+          <li>Use different keys for dev / staging / production</li>
+        </ul>
+
+        <h4>8.2 Key Rotation Schedule</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Secret</th><th>Rotation Frequency</th><th>Last Rotated</th><th>Next Rotation Due</th></tr></thead>
+            <tbody>
+              <tr><td><code>OPENAI_API_KEY</code></td><td>Every 90 days</td><td><code>[YYYY-MM-DD]</code></td><td><code>[YYYY-MM-DD]</code></td></tr>
+              <tr><td><code>STRIPE_SECRET_KEY</code></td><td>Every 90 days</td><td><code>[YYYY-MM-DD]</code></td><td><code>[YYYY-MM-DD]</code></td></tr>
+              <tr><td><code>JWT Secret</code></td><td>Every 90 days</td><td><code>[YYYY-MM-DD]</code></td><td><code>[YYYY-MM-DD]</code></td></tr>
+              <tr><td><code>Database Password</code></td><td>Every 180 days</td><td><code>[YYYY-MM-DD]</code></td><td><code>[YYYY-MM-DD]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>8.3 Security Checklist</h4>
+        <ul class="checklist" id="security-checklist">
+          <li><input type="checkbox"> All external inputs validated and sanitized before use</li>
+          <li><input type="checkbox"> SQL injection prevented (parameterized queries / ORM used)</li>
+          <li><input type="checkbox"> XSS prevented (output escaping in frontend)</li>
+          <li><input type="checkbox"> CORS configured to allow only trusted origins</li>
+          <li><input type="checkbox"> HTTPS enforced on all environments</li>
+          <li><input type="checkbox"> Webhook payloads signature-verified before processing</li>
+          <li><input type="checkbox"> User-uploaded files virus-scanned before storage</li>
+          <li><input type="checkbox"> Admin endpoints require additional authorization checks</li>
+          <li><input type="checkbox"> Dependency vulnerabilities scanned (npm audit / Dependabot)</li>
+          <li><input type="checkbox"> Error messages don't leak stack traces to users</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 9: Error Handling -->
+    <div class="section" id="errors">
+      <div class="section-header">
+        <span class="section-num">9</span>
+        <span class="section-icon">⚠️</span>
+        <h2>Error Handling & Retry Strategy</h2>
+      </div>
+
+      <div class="card">
+        <h4>9.1 Standard Error Response Format</h4>
+        <p>All API errors should return this JSON structure:</p>
+        <div class="code-block">
+          <pre><code>{
+  "error": {
+    "code": "STRIPE_PAYMENT_FAILED",
+    "message": "Your payment could not be processed. Please try a different card.",
+    "details": "Card declined by issuer.",
+    "requestId": "req_abc123xyz",
+    "timestamp": "2026-10-14T09:30:00Z"
+  }
+}</code></pre>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+
+        <h4>9.2 HTTP Status Code Reference</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Code</th><th>When to Use</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>200 OK</code></td><td>Request succeeded</td><td>Returning user data</td></tr>
+              <tr><td><code>201 Created</code></td><td>Resource created</td><td>New user registered</td></tr>
+              <tr><td><code>400 Bad Request</code></td><td>Invalid input from client</td><td>Missing required field</td></tr>
+              <tr><td><code>401 Unauthorized</code></td><td>Not logged in</td><td>No auth token provided</td></tr>
+              <tr><td><code>403 Forbidden</code></td><td>Logged in but no permission</td><td>User accessing another user's data</td></tr>
+              <tr><td><code>404 Not Found</code></td><td>Resource doesn't exist</td><td>Invoice ID not found</td></tr>
+              <tr><td><code>409 Conflict</code></td><td>Duplicate / conflict</td><td>Email already registered</td></tr>
+              <tr><td><code>422 Unprocessable</code></td><td>Valid format, bad logic</td><td>Start date after end date</td></tr>
+              <tr><td><code>429 Too Many Requests</code></td><td>Rate limit hit</td><td>Too many login attempts</td></tr>
+              <tr><td><code>500 Internal Server Error</code></td><td>Your server crashed</td><td>Unhandled exception</td></tr>
+              <tr><td><code>502/503 Unavailable</code></td><td>External service down</td><td>Stripe / OpenAI down</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>9.3 Retry Strategy (Global Rules)</h4>
+        <div class="callout">
+          <span class="callout-icon">💡</span>
+          <div><strong>Exponential backoff</strong> means waiting longer between each retry: 1s → 2s → 4s → give up. This avoids hammering a struggling service.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Rule</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Max Retry Attempts</td><td><code>[e.g., 3 retries]</code></td></tr>
+              <tr><td>Initial Wait</td><td><code>[e.g., 1 second]</code></td></tr>
+              <tr><td>Backoff Multiplier</td><td><code>[e.g., 2× → 1s, 2s, 4s]</code></td></tr>
+              <tr><td>Max Wait</td><td><code>[e.g., 30 seconds]</code></td></tr>
+              <tr><td>Jitter</td><td><code>[Add ±0–500ms random delay to prevent thundering herd]</code></td></tr>
+              <tr><td>Retry on</td><td>Network errors, 429, 502, 503, 504</td></tr>
+              <tr><td>Don't retry on</td><td>400, 401, 403, 404, 422 — retrying won't fix these</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>9.4 User-Facing Error Messages</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Technical Error</th><th>User-Facing Message</th></tr></thead>
+            <tbody>
+              <tr><td><code>Database connection failed</code></td><td>"Something went wrong on our end. Our team has been notified."</td></tr>
+              <tr><td><code>AI provider timeout</code></td><td>"Our AI assistant is taking longer than usual. Please try again."</td></tr>
+              <tr><td><code>Stripe card_declined</code></td><td>"Your payment couldn't be processed. Please try a different card."</td></tr>
+              <tr><td><code>JWT expired</code></td><td>"Your session has expired. Please log in again."</td></tr>
+              <tr><td><code>File too large</code></td><td>"This file is too large. Please upload a file under 10MB."</td></tr>
+              <tr><td><code>Rate limit exceeded</code></td><td>"You're doing that too fast! Please wait a moment and try again."</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 10: Cost -->
+    <div class="section" id="costs">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <span class="section-icon">💰</span>
+        <h2>Cost & Rate Limit Management</h2>
+      </div>
+
+      <div class="card">
+        <h4>10.1 Cost Estimate at Scale</h4>
+        <div class="callout">
+          <span class="callout-icon">💡</span>
+          <div>Update this table monthly once you have real usage data. As you grow from 0 → 500 customers, costs scale — and surprises here can sink a startup.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Integration</th><th>Pricing Model</th><th>10 Users/mo</th><th>100 Users/mo</th><th>500 Users/mo</th></tr></thead>
+            <tbody>
+              <tr><td>Supabase</td><td>Free tier / Pro $25/mo</td><td>$0</td><td>$25</td><td>$25–$100</td></tr>
+              <tr><td>OpenAI GPT-4o-mini</td><td>Pay-per-token</td><td>~$1</td><td>~$10</td><td>~$50</td></tr>
+              <tr><td>Stripe</td><td>2.9% + $0.30/txn</td><td>~$15</td><td>~$150</td><td>~$750</td></tr>
+              <tr><td>Resend Email</td><td>3K/mo free; then $20/mo</td><td>$0</td><td>$0</td><td>$20</td></tr>
+              <tr><td>Twilio SMS</td><td>$0.0079/message</td><td>~$2</td><td>~$20</td><td>~$100</td></tr>
+              <tr class="cost-total"><td><strong>TOTAL ESTIMATE</strong></td><td></td><td><strong>~$18</strong></td><td><strong>~$205</strong></td><td><strong>~$1,020</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>10.2 Rate Limit Reference</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Service</th><th>Free Limit</th><th>Paid Limit</th><th>Check Via</th><th>If Exceeded</th></tr></thead>
+            <tbody>
+              <tr><td>OpenAI</td><td>3 RPM / 40K TPM</td><td>500 RPM / 200K TPM</td><td>x-ratelimit-* headers</td><td>429 → retry with backoff</td></tr>
+              <tr><td>Stripe</td><td>100 read/s</td><td>200 read/s</td><td>Stripe Dashboard</td><td>429 error</td></tr>
+              <tr><td>Supabase Auth</td><td>100 emails/hour</td><td>Configurable</td><td>Dashboard → Auth</td><td>Silently drops emails ⚠️</td></tr>
+              <tr><td>Twilio</td><td>1 msg/s</td><td>100 msg/s</td><td>Console → Monitor</td><td>Queue messages</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>10.3 Budget Alerts & Controls</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Control</th><th>Configuration</th></tr></thead>
+            <tbody>
+              <tr><td>AI Spending Alert</td><td><code>[OpenAI Dashboard → Billing → Set $50/month usage alert]</code></td></tr>
+              <tr><td>AI Hard Cap</td><td><code>[OpenAI Dashboard → Billing → Set $200/month hard limit]</code></td></tr>
+              <tr><td>Per-User AI Limit</td><td><code>[Max 10 AI requests/user/day — tracked in Redis]</code></td></tr>
+              <tr><td>Monitoring Tool</td><td><code>[Sentry + custom Slack alert when spend &gt; threshold]</code></td></tr>
+              <tr><td>Review Schedule</td><td><code>[Check costs every Monday morning]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 11: Testing -->
+    <div class="section" id="testing">
+      <div class="section-header">
+        <span class="section-num">11</span>
+        <span class="section-icon">🧪</span>
+        <h2>Testing & Mocking Strategy</h2>
+      </div>
+
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>Testing your integrations catches bugs before they hit real users. Mock expensive services in tests to avoid real API calls and costs.</div>
+      </div>
+
+      <div class="card">
+        <h4>Testing Pyramid</h4>
+        <div class="phase-tracker">
+          <div class="phase-card"><div class="phase-icon">🔬</div><div class="phase-name">Unit Tests</div><div class="phase-status">Mock all external APIs</div></div>
+          <div class="phase-card"><div class="phase-icon">🔗</div><div class="phase-name">Integration Tests</div><div class="phase-status">Test real connections in sandbox</div></div>
+          <div class="phase-card"><div class="phase-icon">🌐</div><div class="phase-name">E2E Tests</div><div class="phase-status">Full user flow in staging</div></div>
+          <div class="phase-card"><div class="phase-icon">👤</div><div class="phase-name">Manual QA</div><div class="phase-status">Before each major release</div></div>
+        </div>
+
+        <h4>Mocking Strategy by Integration</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Integration</th><th>Mock Tool / Approach</th><th>Test Credentials</th></tr></thead>
+            <tbody>
+              <tr><td>Stripe</td><td>Stripe test mode + test card <code>4242 4242 4242 4242</code></td><td><code>sk_test_...</code></td></tr>
+              <tr><td>OpenAI / Claude</td><td>Mock SDK responses in unit tests; use real API in integration tests</td><td>Real API key with low budget cap</td></tr>
+              <tr><td>Supabase</td><td><code>supabase start</code> for local; separate staging project</td><td>Local dev URL</td></tr>
+              <tr><td>Twilio</td><td>Twilio test credentials; mock SMS in unit tests</td><td><code>TWILIO_TEST_ACCOUNT_SID</code></td></tr>
+              <tr><td>Email (Resend)</td><td>Mailtrap or Resend dev mode (emails log but don't send)</td><td>Test API key</td></tr>
+              <tr><td>Webhooks</td><td>Stripe CLI (<code>stripe listen --forward-to localhost:3000/webhooks</code>)</td><td>Local webhook secret</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Testing Checklist</h4>
+        <ul class="checklist" id="testing-checklist">
+          <li><input type="checkbox"> Happy path tested for each integration (successful response)</li>
+          <li><input type="checkbox"> Error cases tested (network failure, invalid credentials, rate limits)</li>
+          <li><input type="checkbox"> Webhook signature verification tested</li>
+          <li><input type="checkbox"> Retry logic tested (simulate 429 and 503 responses)</li>
+          <li><input type="checkbox"> Circuit breaker behavior tested</li>
+          <li><input type="checkbox"> Tests use mocks/sandboxes — no real money charged, no real emails sent</li>
+          <li><input type="checkbox"> Integration tests run in CI/CD pipeline (GitHub Actions, etc.)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 12: Readiness Tracker -->
+    <div class="section" id="readiness">
+      <div class="section-header">
+        <span class="section-num">12</span>
+        <span class="section-icon">📊</span>
+        <h2>Integration Readiness Tracker</h2>
+      </div>
+      <div class="callout">
+        <span class="callout-icon">💡</span>
+        <div>Update this tracker as you build. It gives you a real-time snapshot of which integrations are ready for each phase.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Integration</th><th>🛠️ Dev</th><th>🔬 Staging</th><th>🧪 Alpha</th><th>📦 Beta</th><th>🚀 GA</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Auth (Supabase)</strong></td><td>✅ Done</td><td>⏳ In Progress</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td></tr>
+            <tr><td><strong>Database (PostgreSQL)</strong></td><td>✅ Done</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td></tr>
+            <tr><td><strong>File Storage (S3)</strong></td><td>⏳ In Progress</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td></tr>
+            <tr><td><strong>AI / LLM (OpenAI)</strong></td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td></tr>
+            <tr><td><strong>Payments (Stripe)</strong></td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td></tr>
+            <tr><td><strong>Email (Resend)</strong></td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td></tr>
+            <tr><td><strong>SMS (Twilio)</strong></td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td><td>🔲 Planned</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px; color: var(--fg-muted);">✅ Done · ⏳ In Progress · 🔲 Planned · ❌ Blocked</p>
+    </div>
+
+    <!-- Section 13: Launch Checklist -->
+    <div class="section" id="checklist">
+      <div class="section-header">
+        <span class="section-num">13</span>
+        <span class="section-icon">🚀</span>
+        <h2>Launch Readiness Checklist</h2>
+      </div>
+      <div class="callout success">
+        <span class="callout-icon">✅</span>
+        <div>Walk through each phase checklist before going live. Check off items as you complete them — they save in your browser.</div>
+      </div>
+
+      <div class="card">
+        <h3>🛠️ Phase 1: Development Complete</h3>
+        <ul class="checklist" id="phase1">
+          <li><input type="checkbox"> All Integration Cards filled for planned integrations</li>
+          <li><input type="checkbox"> All credentials stored in <code>.env</code> — not hardcoded</li>
+          <li><input type="checkbox"> <code>.env</code> added to <code>.gitignore</code></li>
+          <li><input type="checkbox"> All integrations working in local development environment</li>
+          <li><input type="checkbox"> Unit tests passing for all integration modules</li>
+          <li><input type="checkbox"> Error handling implemented for all integrations</li>
+          <li><input type="checkbox"> Architecture diagram matches current implementation</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🔬 Phase 2: Staging Ready</h3>
+        <ul class="checklist" id="phase2">
+          <li><input type="checkbox"> All integrations tested in staging environment</li>
+          <li><input type="checkbox"> Staging uses separate credentials from production</li>
+          <li><input type="checkbox"> Staging DB seeded with realistic (anonymized) test data</li>
+          <li><input type="checkbox"> Webhook endpoints configured for staging</li>
+          <li><input type="checkbox"> Cost monitoring set up — alerts configured</li>
+          <li><input type="checkbox"> Integration tests running in CI/CD pipeline</li>
+          <li><input type="checkbox"> HTTPS enforced on staging domain</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🧪 Phase 3: Alpha Launch (First Real Users)</h3>
+        <ul class="checklist" id="phase3">
+          <li><input type="checkbox"> All integrations smoke-tested with real production credentials</li>
+          <li><input type="checkbox"> Payment flow tested end-to-end with real (small) transactions</li>
+          <li><input type="checkbox"> Auth flows tested: signup, login, password reset, OAuth</li>
+          <li><input type="checkbox"> AI integration tested with real users — cost within budget</li>
+          <li><input type="checkbox"> Error monitoring active (e.g., Sentry) — team gets alerted</li>
+          <li><input type="checkbox"> Rate limits reviewed — not at risk of hitting them</li>
+          <li><input type="checkbox"> User data privacy / GDPR compliance verified</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>📦 Phase 4: Beta (100+ Users)</h3>
+        <ul class="checklist" id="phase4">
+          <li><input type="checkbox"> All API keys rotated to production-grade keys</li>
+          <li><input type="checkbox"> Database connection pooling configured</li>
+          <li><input type="checkbox"> AI cost per-user limits enforced</li>
+          <li><input type="checkbox"> Stripe webhook reliability verified (retry logic working)</li>
+          <li><input type="checkbox"> SMS delivery rates monitored</li>
+          <li><input type="checkbox"> Status page or uptime monitoring set up (e.g., BetterUptime)</li>
+          <li><input type="checkbox"> Incident response plan documented</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🚀 Phase 5: General Availability (500 Customers)</h3>
+        <ul class="checklist" id="phase5">
+          <li><input type="checkbox"> Load testing completed — app handles 10× current traffic</li>
+          <li><input type="checkbox"> Database indexed and query-optimized</li>
+          <li><input type="checkbox"> CDN configured for file storage assets</li>
+          <li><input type="checkbox"> AI caching implemented — reduce redundant API calls</li>
+          <li><input type="checkbox"> Circuit breakers active on all high-frequency integrations</li>
+          <li><input type="checkbox"> Cost projection reviewed — profitable at 500 customers</li>
+          <li><input type="checkbox"> Backup and disaster recovery plan tested</li>
+          <li><input type="checkbox"> Security audit completed</li>
+          <li><input type="checkbox"> All team members have access to required dashboards</li>
+          <li><input type="checkbox"> 🎉 All checklists above completed — you're launch-ready!</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Appendix -->
+    <div class="section" id="appendix">
+      <div class="section-header">
+        <span class="section-icon">📎</span>
+        <h2>Appendix</h2>
+      </div>
+
+      <div class="card">
+        <h3>Glossary</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+            <tbody>
+              <tr><td><strong>API</strong></td><td>Application Programming Interface — a way for two software systems to talk to each other</td></tr>
+              <tr><td><strong>JWT</strong></td><td>JSON Web Token — a secure way to pass identity/session info between systems</td></tr>
+              <tr><td><strong>OAuth 2.0</strong></td><td>Industry standard for "Login with Google/GitHub" type authentication</td></tr>
+              <tr><td><strong>Webhook</strong></td><td>A URL you provide that a third-party service calls when something happens (e.g., payment completed)</td></tr>
+              <tr><td><strong>Rate Limit</strong></td><td>A cap on how many API calls you can make per second/minute/day</td></tr>
+              <tr><td><strong>Circuit Breaker</strong></td><td>Pattern that stops calling a failing service temporarily to let it recover</td></tr>
+              <tr><td><strong>Exponential Backoff</strong></td><td>Retry strategy that waits progressively longer: 1s, 2s, 4s, 8s…</td></tr>
+              <tr><td><strong>RLS</strong></td><td>Row Level Security — database rules ensuring users can only see their own data</td></tr>
+              <tr><td><strong>Token (AI)</strong></td><td>Unit of text processed by an AI model (~4 chars = 1 token)</td></tr>
+              <tr><td><strong>SDK</strong></td><td>Software Development Kit — a library that makes calling an API easier</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Recommended Tools</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Category</th><th>Tool</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>Error Monitoring</td><td>Sentry</td><td>Track errors in production</td></tr>
+              <tr><td>Uptime Monitoring</td><td>BetterUptime / UptimeRobot</td><td>Get alerted when your app is down</td></tr>
+              <tr><td>API Testing</td><td>Postman / Insomnia / Bruno</td><td>Test API endpoints manually</td></tr>
+              <tr><td>Load Testing</td><td>k6 / Locust</td><td>Simulate high traffic</td></tr>
+              <tr><td>Secret Management</td><td>Doppler / 1Password</td><td>Store and sync secrets across environments</td></tr>
+              <tr><td>Webhook Testing</td><td>Stripe CLI / ngrok</td><td>Test webhooks locally</td></tr>
+              <tr><td>Cost Monitoring</td><td>OpenAI Dashboard / AWS Cost Explorer</td><td>Track API spending</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Change Log</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Version</th><th>Date</th><th>Author</th><th>Changes</th></tr></thead>
+            <tbody>
+              <tr><td>1.0</td><td><code>[YYYY-MM-DD]</code></td><td><code>[Your name]</code></td><td>Initial draft</td></tr>
+              <tr><td><em>Add entries as you update the doc</em></td><td></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; padding: 32px 0; color: var(--fg-muted); font-size: 13px;">
+      Integration Specification Template · v1.0 · AI-Driven Development Lifecycle<br>
+      Built for Solo Founders &amp; Small Teams · Dev → 500 Customers
+    </div>
+  </main>
+</div>
+
+<button class="mobile-nav-btn" onclick="document.getElementById('sidebar').style.display = document.getElementById('sidebar').style.display === 'flex' ? 'none' : 'flex'">☰</button>
+
+<script>
+// Theme toggle
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  try { localStorage.setItem('theme', next); } catch(e) {}
+}
+
+// Restore saved theme
+try {
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+} catch(e) {}
+
+// Active nav link on scroll
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+function updateActiveNav() {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 80) current = s.id;
+  });
+  navLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', updateActiveNav, { passive: true });
+
+// Copy code button
+function copyCode(btn) {
+  const code = btn.previousElementSibling.textContent;
+  try {
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    }).catch(() => fallbackCopy(btn, code));
+  } catch(e) { fallbackCopy(btn, code); }
+}
+function fallbackCopy(btn, text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  btn.textContent = 'Copied!'; btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+}
+
+// Checkboxes with localStorage persistence
+function initChecklists() {
+  document.querySelectorAll('.checklist').forEach(list => {
+    const id = list.id;
+    list.querySelectorAll('input[type=checkbox]').forEach((cb, i) => {
+      const key = `chk_${id}_${i}`;
+      try { if (localStorage.getItem(key) === '1') { cb.checked = true; cb.closest('li').classList.add('checked'); } } catch(e) {}
+      cb.addEventListener('change', () => {
+        const li = cb.closest('li');
+        li.classList.toggle('checked', cb.checked);
+        try { localStorage.setItem(key, cb.checked ? '1' : '0'); } catch(e) {}
+      });
+      cb.closest('li').addEventListener('click', e => {
+        if (e.target !== cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }
+      });
+    });
+  });
+}
+initChecklists();
+
+// Init Mermaid
+mermaid.initialize({
+  startOnLoad: true,
+  theme: document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ? 'dark' : 'default',
+  fontFamily: 'Inter, system-ui, sans-serif',
+  fontSize: 13,
+  flowchart: { curve: 'basis' }
+});
+</script>
